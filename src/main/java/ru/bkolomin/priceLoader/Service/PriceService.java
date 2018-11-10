@@ -1,7 +1,10 @@
 package ru.bkolomin.priceLoader.Service;
 
 import org.apache.poi.ss.usermodel.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import ru.bkolomin.priceLoader.Models.PriceItem;
+import ru.bkolomin.priceLoader.repository.PriceRepository;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,9 +13,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Component
 public class PriceService {
 
-    private static String getStringValue(Row row, Map<String, Integer[]> settings, String name){
+    private PriceRepository priceRepository;
+
+    @Autowired
+    public PriceService(PriceRepository priceRepository) {
+        this.priceRepository = priceRepository;
+    }
+
+    private String getStringValue(Row row, Map<String, Integer[]> settings, String name){
 
         String result = "";
 
@@ -41,7 +52,7 @@ public class PriceService {
 
     }
 
-    private static Double getPrice(Row row, Map<String, Integer[]> settings, String name){
+    private Double getPrice(Row row, Map<String, Integer[]> settings, String name){
 
         Double result = 0d;
 
@@ -70,7 +81,7 @@ public class PriceService {
 
     }
 
-    public static List<PriceItem> getPriceItems(String fileName){
+    public List<PriceItem> getPriceItems(String fileName){
 
         ArrayList<PriceItem> list = new ArrayList<>();
 
@@ -108,7 +119,7 @@ public class PriceService {
 
                 if(!name.isEmpty() && price != 0 ) {
 
-                    PriceItem priceItem = new PriceItem(rowNumber, comment, code, name, price, stock);
+                    PriceItem priceItem = new PriceItem("Верисел", rowNumber, comment, code, name, price, stock);
 
                     list.add(priceItem);
 
@@ -125,6 +136,21 @@ public class PriceService {
         }
 
         return list;
+
+    }
+
+    public void loadAllFiles(){
+
+        List<PriceItem> list = getPriceItems("D:\\_Share\\_pricer\\Верисел.xls");
+
+
+        priceRepository.deleteAll("Верисел");
+
+        for(PriceItem priceItem: list){
+
+            priceRepository.save(priceItem);
+
+        }
 
     }
 
